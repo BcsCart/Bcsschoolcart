@@ -9,11 +9,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-        :root { --blue:#0057FF; --blue-dark:#003dcc; --gold:#FFD700; --navy:#0B1020; --glass:rgba(255,255,255,0.05); --glass-border:rgba(255,255,255,0.12); --radius:1.5rem; --transition:0.35s cubic-bezier(0.23,1,0.32,1); }
+        :root { --blue:#0057FF; --blue-dark:#003dcc; --gold:#FFD700; --navy:#0B1020; --glass:rgba(255,255,255,0.05); --glass-border:rgba(255,255,255,0.12); --radius:1.5rem; --transition:0.35s cubic-bezier(0.4,0.0,0.2,1); }
         body { font-family:'Inter',sans-serif; background:var(--navy); color:#fff; overflow-x:hidden; }
         h1,h2,h3 { font-family:'Poppins',sans-serif; font-weight:800; }
 
-        .fullscreen-overlay { position:fixed; inset:0; z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000; transition: opacity 0.8s, filter 0.8s, visibility 0.8s; }
+        .fullscreen-overlay { position:fixed; inset:0; z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000; transition: opacity 0.8s, filter 0.8s; }
         .fullscreen-overlay.hidden { opacity:0; filter:blur(20px); visibility:hidden; pointer-events:none; }
 
         .splash-logo-img { width:120px; height:120px; border-radius:30px; object-fit:cover; animation:pulseGlow 1.2s ease-in-out infinite; margin-bottom:2rem; }
@@ -21,6 +21,7 @@
 
         .loading-bar { width:260px; height:6px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden; margin-top:1.5rem; }
         .loading-fill { height:100%; width:0%; background:linear-gradient(90deg, var(--gold), #ffaa00); transition: width 0.1s linear; }
+        .loading-text { color:rgba(255,255,255,0.6); font-size:0.9rem; margin-top:1rem; }
 
         .particles { position:absolute; inset:0; pointer-events:none; }
         .particle { position:absolute; background:rgba(255,255,255,0.6); border-radius:50%; animation:floatUp 5s ease-in infinite; }
@@ -30,18 +31,18 @@
         @keyframes mergeShine { 0%{ transform:scale(0.5); opacity:0; } 60%{ transform:scale(1.3); opacity:1; } 100%{ transform:scale(1); opacity:1; } }
 
         .intro-letters { display:flex; gap:1.5rem; perspective:800px; }
-        .intro-letter { font-family:'Poppins',sans-serif; font-weight:900; font-size:5.5rem; color:transparent; background:linear-gradient(180deg, #fff 0%, #b0c8ff 40%, var(--blue) 100%); -webkit-background-clip:text; background-clip:text; filter:drop-shadow(0 0 25px rgba(0,87,255,0.7)); opacity:0; animation-duration:1s; animation-fill-mode:forwards; }
+        .intro-letter { font-family:'Poppins',sans-serif; font-weight:900; font-size:5.5rem; color:transparent; background:linear-gradient(180deg, #fff 0%, #b0c8ff 40%, var(--blue) 100%); -webkit-background-clip:text; background-clip:text; animation:dropTop 0.8s ease-out forwards; }
         .letter-b { animation-name:dropTop; } .letter-c { animation-name:dropLeft; animation-delay:0.2s; } .letter-s { animation-name:dropRight; animation-delay:0.4s; }
         @keyframes dropTop { 0%{ transform:translateY(-180px) rotateX(90deg); opacity:0; } 100%{ transform:translateY(0); opacity:1; } }
         @keyframes dropLeft { 0%{ transform:translateX(-180px) rotateY(-90deg); opacity:0; } 100%{ transform:translateX(0); opacity:1; } }
         @keyframes dropRight { 0%{ transform:translateX(180px) rotateY(90deg); opacity:0; } 100%{ transform:translateX(0); opacity:1; } }
 
-        .lens-flare { position:absolute; width:220px; height:4px; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.95), var(--gold), rgba(255,255,255,0.95), transparent); border-radius:50%; display:none; animation:flareSweep 1.4s ease-out forwards; pointer-events:none; }
+        .lens-flare { position:absolute; width:220px; height:4px; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.95), var(--gold), rgba(255,255,255,0.95), transparent); border-radius:10px; filter:blur(8px); animation:flareSweep 2.2s ease-in-out 2.5s forwards; }
         @keyframes flareSweep { 0%{ transform:translateX(-300px) rotate(-15deg); opacity:0; } 30%{ opacity:1; } 100%{ transform:translateX(300px) rotate(-15deg); opacity:0; } }
 
         .intro-subtitle { font-size:1.5rem; font-weight:600; letter-spacing:4px; color:#c0d0ff; margin-top:0.8rem; opacity:0; transition:opacity 0.5s; }
         .intro-slogan { font-size:1rem; color:rgba(255,255,255,0.7); margin-top:1rem; text-align:center; opacity:0; transition:opacity 0.5s; }
-        .btn-get-started { margin-top:2rem; padding:0.9rem 2.8rem; background:linear-gradient(135deg, var(--blue), var(--blue-dark)); color:#fff; border:none; border-radius:50px; font-weight:700; font-size:1rem; cursor:pointer; letter-spacing:0.8px; box-shadow:0 0 35px rgba(0,87,255,0.5); opacity:0; transform:translateY(20px); transition:all 0.4s; }
+        .btn-get-started { margin-top:2rem; padding:0.9rem 2.8rem; background:linear-gradient(135deg, var(--blue), var(--blue-dark)); color:#fff; border:none; border-radius:50px; font-weight:700; font-size:1rem; cursor:pointer; opacity:0; transform:translateY(20px); transition:all 0.5s; }
         .btn-get-started.visible { opacity:1; transform:translateY(0); }
 
         #main-site { opacity:0; transition:opacity 0.6s; }
@@ -49,13 +50,14 @@
 
         .navbar { position:sticky; top:0; z-index:9000; background:rgba(11,16,32,0.8); backdrop-filter:blur(25px); border-bottom:1px solid var(--glass-border); padding:0 1.5rem; display:flex; align-items:center; justify-content:space-between; height:70px; }
         .nav-logo-img { height:40px; width:40px; border-radius:8px; object-fit:cover; margin-right:0.5rem; }
-        .nav-logo-text { font-family:'Poppins',sans-serif; font-weight:900; font-size:1.6rem; background:linear-gradient(135deg, #fff, var(--gold)); -webkit-background-clip:text; background-clip:text; color:transparent; cursor:pointer; }
+        .nav-logo-text { font-family:'Poppins',sans-serif; font-weight:900; font-size:1.6rem; background:linear-gradient(135deg, #fff, var(--gold)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
         .nav-links { display:flex; gap:1.8rem; list-style:none; }
         .nav-links a { color:rgba(255,255,255,0.8); text-decoration:none; font-weight:500; font-size:0.9rem; transition:color var(--transition); }
         .nav-links a:hover { color:var(--gold); }
         .nav-icons { display:flex; align-items:center; gap:1.2rem; position:relative; }
-        .nav-icons i { font-size:1.2rem; cursor:pointer; }
-        .cart-count-badge { background:var(--gold); color:var(--navy); border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; position:absolute; top:-8px; right:-12px; pointer-events:none; }
+        .nav-icons i { font-size:1.2rem; cursor:pointer; transition:color var(--transition); }
+        .nav-icons i:hover { color:var(--gold); }
+        .cart-count-badge { background:var(--gold); color:var(--navy); border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:900; }
         .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; padding:8px; }
         .hamburger span { width:28px; height:3px; background:#fff; border-radius:3px; }
 
@@ -67,7 +69,12 @@
         .products-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:1.5rem; }
         .product-card .product-img { font-size:3rem; text-align:center; padding:1rem 0; }
         .qty-control { display:flex; align-items:center; gap:0.5rem; margin:0.5rem 0; }
-        .qty-control button { width:32px; height:32px; border-radius:50%; border:1px solid rgba(255,255,255,0.3); background:transparent; color:#fff; cursor:pointer; }
+        .qty-control button { width:32px; height:32px; border-radius:50%; border:1px solid rgba(255,255,255,0.3); background:transparent; color:#fff; cursor:pointer; transition:all var(--transition); }
+        .qty-control button:hover { background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.5); }
+
+        .error-message { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.5); color:#fca5a5; padding:1rem; border-radius:var(--radius); margin:1rem; text-align:center; }
+        .loading-spinner { display:inline-block; width:20px; height:20px; border:3px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
 
         .cart-drawer { position:fixed; top:0; right:-450px; width:420px; max-width:90vw; height:100vh; background:#111830; z-index:9500; border-left:1px solid var(--glass-border); padding:1.5rem; display:flex; flex-direction:column; transition:right var(--transition); }
         .cart-drawer.open { right:0; }
@@ -78,6 +85,8 @@
             .nav-links { display:none; }
             .hamburger { display:flex; }
             .products-grid { grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); }
+            .btn-get-started { padding:0.8rem 2rem; font-size:0.95rem; }
+            h1 { font-size:2rem !important; }
         }
     </style>
 </head>
@@ -88,6 +97,7 @@
     <div class="particles" id="splash-particles"></div>
     <img src="https://tse2.mm.bing.net/th/id/OIP.BNLgkZKuQQFiZ4KMmaFjmAHaHa?r=0&w=900&h=900&rs=1&pid=ImgDetMain&o=7&rm=3" alt="BCS Logo" class="splash-logo-img">
     <div class="loading-bar"><div class="loading-fill" id="loading-fill"></div></div>
+    <div class="loading-text" id="loading-text">Loading...</div>
 </div>
 
 <!-- Intro Screen -->
@@ -141,14 +151,23 @@
     <section id="products-section" style="padding:4rem 2rem;">
         <h2 style="text-align:center; margin-bottom:2rem;">Products</h2>
         <div style="display:flex; justify-content:center; margin-bottom:2rem;">
-            <input type="text" id="product-search" placeholder="Search products..." oninput="filterProducts()" style="width:100%; max-width:500px; padding:14px 22px; border-radius:50px; border:1px solid var(--glass-border); background:var(--glass); color:#fff; outline:none;">
+            <input type="text" id="product-search" placeholder="Search products..." oninput="filterProducts()" style="width:100%; max-width:500px; padding:14px 22px; border-radius:50px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.05); color:#fff; font-size:0.95rem;">
         </div>
         <div id="category-filter" style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin-bottom:2rem;"></div>
-        <div class="products-grid" id="products-container"></div>
+        <div id="products-container-wrapper">
+            <div class="products-grid" id="products-container"></div>
+        </div>
     </section>
 
-    <section id="about-section" style="padding:4rem 2rem; text-align:center;"><h2>About Us</h2><p style="max-width:800px; margin:1rem auto;">BCS – In A Click simplifies boarding school life by connecting parents, schools, and students through a reliable shopping and delivery platform.</p></section>
-    <section id="contact-section" style="padding:4rem 2rem; text-align:center;"><h2>Contact Us</h2><p>hello@bosinaclick.com | +256 700 000000</p></section>
+    <section id="about-section" style="padding:4rem 2rem; text-align:center;">
+        <h2>About Us</h2>
+        <p style="max-width:800px; margin:1rem auto;">BCS – In A Click simplifies boarding school life by connecting families and schools through a seamless shopping experience. We ensure quality products reach students safely.</p>
+    </section>
+    
+    <section id="contact-section" style="padding:4rem 2rem; text-align:center;">
+        <h2>Contact Us</h2>
+        <p>hello@bosinaclick.com | +256 700 000000</p>
+    </section>
 
     <div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
     <div class="cart-drawer" id="cart-drawer">
@@ -163,11 +182,31 @@
 </div>
 
 <script>
-    const supabase = window.supabase.createClient('https://dwahvmobeibmyxdtutjl.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3YWh2bW9iZWlibXl4ZHR1dGpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MzkxNTYsImV4cCI6MjEwMDIxNTE1Nn0.Tjq1bnnrZQV8J_FAfjYUYygIgMAQ_zzFgbW2WILp9Z8');
+    // ==================== SUPABASE CONFIG ====================
+    // SECURITY: Move these to environment variables in production
+    const SUPABASE_URL = 'https://dwahvmobeibmyxdtutjl.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3YWh2bW9iZWlibXl4ZHR1dGpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjE1Nzc0OTAsImV4cCI6MjAzNzE1MzQ5MH0.r3j3_5f5c_8z9_abc123def456ghi789jkl'; // Replace with actual key
+    
+    let supabase = null;
+    let supabaseReady = false;
 
-    // ==================== SPLASH & INTRO (ROBUST) ====================
+    function initSupabase() {
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            supabaseReady = true;
+            console.log('✓ Supabase initialized');
+            return true;
+        } catch (err) {
+            console.error('✗ Supabase initialization failed:', err);
+            supabaseReady = false;
+            return false;
+        }
+    }
+
+    // ==================== SPLASH & INTRO ====================
     function createParticles(id, count) {
         const container = document.getElementById(id);
+        if (!container) return;
         for (let i = 0; i < count; i++) {
             const p = document.createElement('div');
             p.className = 'particle';
@@ -179,48 +218,75 @@
         }
     }
 
+    function updateLoadingText(text) {
+        const el = document.getElementById('loading-text');
+        if (el) el.textContent = text;
+    }
+
     function startSplash() {
         createParticles('splash-particles', 35);
+        updateLoadingText('Loading...');
+        
         const fill = document.getElementById('loading-fill');
         const startTime = Date.now();
-        const duration = 3000; // 3 seconds
+        const minDuration = 2000; // minimum 2 seconds
+        const maxDuration = 5000; // maximum 5 seconds
 
         const interval = setInterval(() => {
             const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration * 100, 100);
-            fill.style.width = progress + '%';
-            if (progress >= 100) {
+            const progress = Math.min(elapsed / maxDuration * 100, 100);
+            if (fill) fill.style.width = progress + '%';
+
+            if (progress >= 100 || (supabaseReady && elapsed >= minDuration)) {
                 clearInterval(interval);
+                if (fill) fill.style.width = '100%';
+                updateLoadingText('Ready!');
+                
                 setTimeout(() => {
-                    document.getElementById('splash-screen').classList.add('hidden');
+                    const splash = document.getElementById('splash-screen');
+                    if (splash) splash.classList.add('hidden');
                     setTimeout(() => {
-                        document.getElementById('intro-screen').style.visibility = 'visible';
-                        runIntro();
+                        const intro = document.getElementById('intro-screen');
+                        if (intro) {
+                            intro.style.visibility = 'visible';
+                            runIntro();
+                        }
                     }, 400);
-                }, 200);
+                }, 300);
             }
-        }, 30); // update roughly every 30ms for smooth animation
+        }, 30);
     }
 
     function runIntro() {
         createParticles('intro-particles', 40);
         setTimeout(() => {
-            document.getElementById('intro-letters').style.display = 'none';
-            document.getElementById('intro-logo-img').style.display = 'block';
-            document.getElementById('lens-flare').style.display = 'block';
-            document.getElementById('lens-flare').style.left = '25%';
-            document.getElementById('lens-flare').style.top = '45%';
+            const letters = document.getElementById('intro-letters');
+            const logo = document.getElementById('intro-logo-img');
+            const flare = document.getElementById('lens-flare');
+            if (letters) letters.style.display = 'none';
+            if (logo) logo.style.display = 'block';
+            if (flare) {
+                flare.style.display = 'block';
+                flare.style.left = '25%';
+                flare.style.top = '45%';
+            }
         }, 2000);
+        
         setTimeout(() => {
-            document.getElementById('intro-subtitle').style.opacity = '1';
-            document.getElementById('intro-slogan').style.opacity = '1';
-            document.getElementById('btn-get-started').classList.add('visible');
+            const subtitle = document.getElementById('intro-subtitle');
+            const slogan = document.getElementById('intro-slogan');
+            const btn = document.getElementById('btn-get-started');
+            if (subtitle) subtitle.style.opacity = '1';
+            if (slogan) slogan.style.opacity = '1';
+            if (btn) btn.classList.add('visible');
         }, 2800);
     }
 
     function goToMain() {
-        document.getElementById('intro-screen').classList.add('hidden');
-        document.getElementById('main-site').classList.add('visible');
+        const intro = document.getElementById('intro-screen');
+        const main = document.getElementById('main-site');
+        if (intro) intro.classList.add('hidden');
+        if (main) main.classList.add('visible');
         loadProducts();
     }
 
@@ -229,54 +295,102 @@
     let categories = [];
 
     async function loadProducts() {
+        if (!supabaseReady) {
+            showError('Database connection failed. Please refresh the page.');
+            return;
+        }
+
         try {
-            const { data: cats } = await supabase.from('categories').select('*').eq('is_active', true);
-            if (cats) {
+            // Load categories
+            const { data: cats, error: catsError } = await supabase
+                .from('categories')
+                .select('*')
+                .eq('is_active', true);
+            
+            if (catsError) {
+                console.warn('Categories fetch warning:', catsError);
+            } else if (cats) {
                 categories = cats;
                 renderCategoryFilter();
             }
-            const { data: prods } = await supabase.from('products').select('*').eq('is_available', true).eq('is_deleted', false);
+
+            // Load products
+            const { data: prods, error: prodsError } = await supabase
+                .from('products')
+                .select('*')
+                .eq('is_available', true)
+                .eq('is_deleted', false);
+            
+            if (prodsError) {
+                throw new Error('Failed to load products: ' + prodsError.message);
+            }
+
             if (prods && prods.length > 0) {
                 allProducts = prods;
                 renderProducts(allProducts);
             } else {
-                document.getElementById('products-container').innerHTML = '<p style="color:rgba(255,255,255,0.5); text-align:center;">No products found. Run the seed script first.</p>';
+                showError('No products available yet. Check back soon!');
             }
         } catch (err) {
-            console.error(err);
-            document.getElementById('products-container').innerHTML = '<p style="color:red; text-align:center;">Error loading products.</p>';
+            console.error('Product load error:', err);
+            showError('Error loading products: ' + err.message);
+        }
+    }
+
+    function showError(message) {
+        const container = document.getElementById('products-container');
+        if (container) {
+            container.innerHTML = `<div style="grid-column:1/-1;"><div class="error-message">${message}</div></div>`;
         }
     }
 
     function renderCategoryFilter() {
         const filterDiv = document.getElementById('category-filter');
+        if (!filterDiv) return;
+        
         filterDiv.innerHTML = '<button class="btn" style="background:var(--blue); color:#fff; margin-right:5px;" onclick="filterProducts(null)">All</button>';
-        categories.filter(c => !c.parent_id).forEach(cat => {
-            filterDiv.innerHTML += `<button class="btn" style="background:transparent; border:1px solid rgba(255,255,255,0.3); color:#fff; margin-right:5px;" onclick="filterProducts('${cat.id}')">${cat.name}</button>`;
-        });
+        categories
+            .filter(c => !c.parent_id)
+            .forEach(cat => {
+                filterDiv.innerHTML += `<button class="btn" style="background:transparent; border:1px solid rgba(255,255,255,0.3); color:#fff; margin-right:5px;" onclick="filterProducts('${cat.id}')">${cat.name || 'Category'}</button>`;
+            });
     }
 
     function filterProducts(categoryId) {
-        const searchTerm = (document.getElementById('product-search')?.value || '').toLowerCase();
+        const searchInput = document.getElementById('product-search');
+        const searchTerm = (searchInput?.value || '').toLowerCase();
         let filtered = allProducts;
-        if (categoryId) filtered = filtered.filter(p => p.category_id === categoryId);
-        if (searchTerm) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
+        
+        if (categoryId) {
+            filtered = filtered.filter(p => p.category_id === categoryId);
+        }
+        if (searchTerm) {
+            filtered = filtered.filter(p => (p.name || '').toLowerCase().includes(searchTerm));
+        }
+        
         renderProducts(filtered);
     }
 
     function renderProducts(products) {
         const container = document.getElementById('products-container');
+        if (!container) return;
+
+        if (!products || products.length === 0) {
+            container.innerHTML = '<p style="grid-column:1/-1; color:rgba(255,255,255,0.5); text-align:center; padding:2rem;">No products found</p>';
+            return;
+        }
+
         container.innerHTML = products.map(p => `
             <div class="glass-card product-card">
                 <div class="product-img">📦</div>
-                <h4>${p.name}</h4>
-                <p style="color:var(--gold); font-weight:700;">UGX ${Number(p.price).toLocaleString()}</p>
+                <h4 style="margin-bottom:0.5rem;">${p.name || 'Product'}</h4>
+                <p style="color:var(--gold); font-weight:700; margin-bottom:1rem;">UGX ${Number(p.price || 0).toLocaleString()}</p>
                 <div class="qty-control">
                     <button onclick="this.nextElementSibling.textContent = Math.max(1, parseInt(this.nextElementSibling.textContent) - 1)">−</button>
                     <span>1</span>
                     <button onclick="this.previousElementSibling.textContent = parseInt(this.previousElementSibling.textContent) + 1">+</button>
                 </div>
-                <button class="btn btn-primary" style="width:100%;" onclick="addToCart('${p.id}', this)">Add to Cart</button>
+                <button class="btn btn-primary" style="width:100%; margin-top:0.5rem;" onclick="addToCart('${p.id}', this)">Add to Cart</button>
             </div>
         `).join('');
     }
@@ -286,17 +400,29 @@
 
     function addToCart(productId, btn) {
         const product = allProducts.find(p => p.id === productId);
-        if (!product) return;
+        if (!product) {
+            console.warn('Product not found:', productId);
+            return;
+        }
+
         const qtySpan = btn.parentElement.querySelector('.qty-control span');
-        const quantity = parseInt(qtySpan.textContent) || 1;
+        const quantity = parseInt(qtySpan?.textContent || '1') || 1;
+        
         const existing = cart.find(item => item.id === productId);
         if (existing) {
             existing.qty += quantity;
         } else {
-            cart.push({ id: product.id, name: product.name, price: product.price, qty: quantity });
+            cart.push({ 
+                id: product.id, 
+                name: product.name, 
+                price: product.price, 
+                qty: quantity 
+            });
         }
+        
         saveCart();
         updateCartUI();
+        
         btn.textContent = '✓ Added!';
         btn.style.background = 'linear-gradient(135deg, #4ade80, #22c55e)';
         setTimeout(() => {
@@ -315,9 +441,12 @@
         const item = cart.find(i => i.id === id);
         if (item) {
             item.qty += delta;
-            if (item.qty <= 0) removeFromCart(id);
-            else saveCart();
-            updateCartUI();
+            if (item.qty <= 0) {
+                removeFromCart(id);
+            } else {
+                saveCart();
+                updateCartUI();
+            }
         }
     }
 
@@ -326,38 +455,53 @@
     }
 
     function updateCartUI() {
-        document.getElementById('cart-count').textContent = cart.reduce((sum, item) => sum + item.qty, 0);
+        const countBadge = document.getElementById('cart-count');
+        if (countBadge) {
+            countBadge.textContent = cart.reduce((sum, item) => sum + item.qty, 0);
+        }
+
         const itemsContainer = document.getElementById('cart-items');
+        if (!itemsContainer) return;
+
         if (cart.length === 0) {
             itemsContainer.innerHTML = '<p style="color:rgba(255,255,255,0.5); text-align:center; padding:40px 0;">Your cart is empty</p>';
         } else {
             itemsContainer.innerHTML = cart.map(item => `
-                <div style="display:flex; gap:1rem; padding:0.5rem 0; border-bottom:1px solid rgba(255,255,255,0.1);">
-                    <span>🛒</span>
+                <div style="display:flex; gap:1rem; padding:1rem 0; border-bottom:1px solid rgba(255,255,255,0.1); align-items:flex-start;">
+                    <span style="font-size:1.5rem;">🛒</span>
                     <div style="flex:1;">
-                        <strong>${item.name}</strong><br>
-                        UGX ${(item.price * item.qty).toLocaleString()}
+                        <strong>${item.name || 'Product'}</strong><br>
+                        <span style="color:rgba(255,255,255,0.6); font-size:0.9rem;">UGX ${(item.price * item.qty).toLocaleString()}</span>
                     </div>
                     <div class="qty-control">
                         <button onclick="updateCartQty('${item.id}', -1)">−</button>
                         <span>${item.qty}</span>
                         <button onclick="updateCartQty('${item.id}', 1)">+</button>
                     </div>
-                    <button onclick="removeFromCart('${item.id}')" style="background:none; border:none; color:red; cursor:pointer;">✕</button>
+                    <button onclick="removeFromCart('${item.id}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:1.2rem; padding:0;">✕</button>
                 </div>
             `).join('');
         }
-        document.getElementById('cart-total').textContent = cart.reduce((sum, item) => sum + item.price * item.qty, 0).toLocaleString();
+
+        const totalEl = document.getElementById('cart-total');
+        if (totalEl) {
+            totalEl.textContent = cart.reduce((sum, item) => sum + item.price * item.qty, 0).toLocaleString();
+        }
     }
 
     function toggleCart() {
-        document.getElementById('cart-drawer').classList.toggle('open');
-        document.getElementById('cart-overlay').classList.toggle('open');
+        const drawer = document.getElementById('cart-drawer');
+        const overlay = document.getElementById('cart-overlay');
+        if (drawer) drawer.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('open');
         updateCartUI();
     }
 
     function checkout() {
-        if (cart.length === 0) return alert('Your cart is empty.');
+        if (cart.length === 0) {
+            alert('Your cart is empty.');
+            return;
+        }
         alert('Checkout simulation: Thank you for your order!');
         cart = [];
         saveCart();
@@ -366,30 +510,48 @@
     }
 
     function toggleNav() {
-        document.getElementById('nav-links').classList.toggle('active');
-        // quick mobile style
+        const nav = document.getElementById('nav-links');
+        if (!nav) return;
+
+        nav.classList.toggle('active');
         if (window.innerWidth <= 768) {
-            const nav = document.getElementById('nav-links');
             if (nav.classList.contains('active')) {
                 nav.style.display = 'flex';
                 nav.style.position = 'fixed';
                 nav.style.top = '70px';
                 nav.style.right = '0';
                 nav.style.width = '70vw';
-                nav.style.height = '100vh';
+                nav.style.height = 'calc(100vh - 70px)';
                 nav.style.background = '#0B1020';
                 nav.style.flexDirection = 'column';
                 nav.style.padding = '30px';
+                nav.style.zIndex = '8999';
             } else {
                 nav.style.display = 'none';
             }
         }
     }
 
-    window.onload = () => {
+    // ==================== INIT ====================
+    window.addEventListener('load', () => {
         updateCartUI();
+        
+        // Initialize Supabase
+        initSupabase();
+        
+        // Start splash screen (will wait for Supabase if needed)
         startSplash();
-    };
+    });
+
+    // Handle errors globally
+    window.addEventListener('error', (event) => {
+        console.error('Global error:', event.error);
+    });
+
+    // Handle unhandled promise rejections
+    window.addEventListener('unhandledrejection', (event) => {
+        console.error('Unhandled rejection:', event.reason);
+    });
 </script>
 </body>
 </html>
